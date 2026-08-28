@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Painel de Estoque</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --porcelain:#F6F4EF;
+    --surface:#FFFFFF;
+    --hairline:#E4E0D3;
+    --hairline-strong:#D8D3C3;
+    --ink:#1B1E1B;
+    --ink-soft:#71756A;
+    --ink-faint:#9B9B8F;
+    --botanical:#1F3A33;
+    --botanical-tint:rgba(31,58,51,0.10);
+    --slate:#3E5A72;
+    --slate-tint:rgba(62,90,114,0.10);
+    --gold:#A9791F;
+    --gold-tint:rgba(169,121,31,0.12);
+    --wine:#8B4750;
+    --wine-tint:rgba(139,71,80,0.10);
+    --muted:#8A8677;
+    --muted-tint:rgba(138,134,119,0.12);
+    --shadow-sm: 0 1px 2px rgba(27,30,27,0.04);
+    --shadow-md: 0 8px 24px rgba(27,30,27,0.08);
+    --radius:10px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--porcelain);
+    color:var(--ink);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    font-size:14px;
+    line-height:1.5;
+  }
+  .app{
+    max-width:1180px;
+    margin:0 auto;
+    padding:32px 28px 80px;
+  }
+
+  /* ---------- Topbar ---------- */
+  .topbar{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+    padding-bottom:22px;
+    border-bottom:1px solid var(--hairline);
+  }
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    font-weight:600;
+  }
+  .topbar-right{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-shrink:0;
+  }
+  .updated{
+    font-size:12px;
+    color:var(--ink-faint);
+    font-family:'JetBrains Mono',ui-monospace,monospace;
+    white-space:nowrap;
+  }
+  .btn-upload{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:var(--ink);
+    color:var(--porcelain);
+    border:none;
+    padding:9px 16px;
+    border-radius:100px;
+    font-family:inherit;
+    font-size:12.5px;
+    font-weight:600;
+    letter-spacing:0.01em;
+    cursor:pointer;
+    transition:transform 0.15s ease, background 0.15s ease;
+    white-space:nowrap;
+  }
+  .btn-upload:hover{ background:var(--botanical); transform:translateY(-1px); }
+  .btn-upload:active{ transform:translateY(0); }
+  .btn-upload:focus-visible{ outline:2px solid var(--botanical); outline-offset:2px; }
+
+  /* ---------- Hero ---------- */
+  .hero{ padding:28px 0 8px; }
+  .hero h1{
+    font-family:'Fraunces',ui-serif,Georgia,serif;
+    font-weight:560;
+    font-size:40px;
+    letter-spacing:-0.01em;
+    margin:0 0 6px;
+    transition:opacity 0.2s ease;
+  }
+  .hero .subtitle{
+    margin:0;
+    color:var(--ink-soft);
+    font-size:14.5px;
+  }
+
+  /* ---------- Filters ---------- */
+  .filters{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+    padding:20px 0 28px;
+  }
+  .chip{
+    border:1px solid var(--hairline-strong);
+    background:var(--surface);
+    color:var(--ink-soft);
+    padding:8px 16px;
+    border-radius:100px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    transition:all 0.15s ease;
+    font-family:inherit;
+  }
+  .chip:hover{ border-color:var(--ink-faint); color:var(--ink); }
+  .chip.active{
+    color:#fff;
+    border-color:transparent;
+    box-shadow:var(--shadow-sm);
+  }
+  .chip:focus-visible{ outline:2px solid var(--botanical); outline-offset:2px; }
+  .chip .dot{
+    display:inline-block;
+    width:6px;height:6px;
+    border-radius:50%;
+    margin-right:7px;
+    position:relative;
+    top:-1px;
+  }
+
+  /* ---------- KPI cards ---------- */
+  .kpis{
+    display:grid;
+    grid-template-columns:1.3fr 1fr 1fr 1fr;
+    gap:1px;
+    background:var(--hairline);
+    border:1px solid var(--hairline);
+    border-radius:var(--radius);
+    overflow:hidden;
+    margin-bottom:36px;
+  }
+  .kpi{
+    background:var(--surface);
+    padding:22px 22px 20px;
+    animation:riseIn 0.5s ease both;
+  }
+  .kpi:nth-child(1){ animation-delay:0s; }
+  .kpi:nth-child(2){ animation-delay:0.05s; }
+  .kpi:nth-child(3){ animation-delay:0.10s; }
+  .kpi:nth-child(4){ animation-delay:0.15s; }
+  @keyframes riseIn{
+    from{ opacity:0; transform:translateY(6px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .kpi{ animation:none; }
+  }
+  .kpi-label{
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.09em;
+    color:var(--ink-soft);
+    font-weight:600;
+    margin-bottom:10px;
+  }
+  .kpi-value{
+    font-family:'Fraunces',ui-serif,Georgia,serif;
+    font-size:30px;
+    font-weight:560;
+    letter-spacing:-0.01em;
+    font-feature-settings:"tnum";
+  }
+  .kpi-sub{
+    margin-top:6px;
+    font-size:12px;
+    color:var(--ink-faint);
+    font-family:'JetBrains Mono',ui-monospace,monospace;
+  }
+
+  /* Signature ratio bar */
+  .ratio-bar{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-top:14px;
+  }
+  .ratio-track{
+    flex:1;
+    height:6px;
+    border-radius:4px;
+    overflow:hidden;
+    display:flex;
+    background:var(--hairline);
+  }
+  .ratio-seg-pe, .ratio-seg-sp{ height:100%; }
+  .ratio-caption{
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:2px 10px;
+    margin-top:6px;
+    font-size:10.5px;
+    font-family:'JetBrains Mono',ui-monospace,monospace;
+    color:var(--ink-faint);
+    letter-spacing:0.02em;
+  }
+  .ratio-caption span{ white-space:nowrap; }
+
+  /* ---------- Distribution ---------- */
+  .distribution{ margin-bottom:36px; }
+  .section-title{
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.09em;
+    color:var(--ink-soft);
+    font-weight:600;
+    margin:0 0 14px;
+  }
+  .dist-row{
+    display:grid;
+    grid-template-columns:110px 1fr 130px;
+    align-items:center;
+    gap:18px;
+    padding:12px 0;
+    border-bottom:1px solid var(--hairline);
+    transition:opacity 0.2s ease;
+  }
+  .dist-row:last-child{ border-bottom:none; }
+  .dist-row.dimmed{ opacity:0.35; }
+  .dist-brand{
+    font-size:13px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .dist-total{
+    text-align:right;
+    font-family:'JetBrains Mono',ui-monospace,monospace;
+    font-size:13px;
+    font-feature-settings:"tnum";
+  }
+
+  /* ---------- Table ---------- */
+  .table-section{ margin-bottom:20px; }
+  .table-toolbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:12px;
+  }
+  #searchInput{
+    flex:1;
+    max-width:280px;
+    border:1px solid var(--hairline-strong);
+    background:var(--surface);
+    border-radius:8px;
+    padding:9px 13px;
+    font-family:inherit;
+    font-size:13px;
+    color:var(--ink);
+  }
+  #searchInput:focus-visible, #searchInput:focus{
+    outline:2px solid var(--botanical);
+    outline-offset:1px;
+    border-color:var(--botanical);
+  }
+  .result-count{
+    font-size:12px;
+    color:var(--ink-faint);
+    font-family:'JetBrains Mono',ui-monospace,monospace;
+    white-space:nowrap;
+  }
+  .table-wrap{
+    border:1px solid var(--hairline);
+    border-radius:var(--radius);
+    background:var(--surface);
+    overflow:auto;
+    max-height:620px;
+  }
+  table{ width:100%; border-collapse:collapse; min-width:560px; }
+  thead th{
+    position:sticky;
+    top:0;
+    background:var(--surface);
+    text-align:left;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-soft);
+    font-weight:600;
+    padding:13px 18px;
+    border-bottom:1px solid var(--hairline);
+    cursor:pointer;
+    user-select:none;
+    white-space:nowrap;
+    z-index:1;
+  }
+  thead th:hover{ color:var(--ink); }
+  thead th.num{ text-align:right; }
+  thead th .arrow{ margin-left:4px; opacity:0.5; }
+  tbody td{
+    padding:12px 18px;
+    border-bottom:1px solid var(--hairline);
+    font-size:13px;
+    vertical-align:middle;
+  }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:hover td{ background:var(--porcelain); }
+  td.num{
+    text-align:right;
+    font-family:'JetBrains Mono',ui-monospace,monospace;
+    font-feature-settings:"tnum";
+  }
+  td.total-cell{ font-weight:600; }
+  .brand-tag{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:11.5px;
+    font-weight:700;
+    letter-spacing:0.01em;
+  }
+  .brand-tag .dot{ width:6px; height:6px; border-radius:50%; }
+  .empty-state{
+    padding:60px 20px;
+    text-align:center;
+    color:var(--ink-faint);
+    font-size:13px;
+  }
+
+  /* ---------- Footer ---------- */
+  .footer{
+    margin-top:44px;
+    padding-top:20px;
+    border-top:1px solid var(--hairline);
+  }
+  .footer p{
+    color:var(--ink-faint);
+    font-size:12px;
+    max-width:640px;
+    margin:0;
+  }
+  .footer strong{ color:var(--ink-soft); }
+
+  /* ---------- Modal ---------- */
+  .modal-overlay{
+    position:fixed; inset:0;
+    background:rgba(20,22,19,0.42);
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+    z-index:100;
+    opacity:0; pointer-events:none;
+    transition:opacity 0.18s ease;
+  }
+  .modal-overlay.open{ opacity:1; pointer-events:auto; }
+  .modal{
+    background:var(--surface);
+    border-radius:14px;
+    max-width:460px;
+    width:100%;
+    padding:28px;
+    box-shadow:var(--shadow-md);
+    transform:translateY(8px);
+    transition:transform 0.18s ease;
+  }
+  .modal-overlay.open .modal{ transform:translateY(0); }
+  .modal h3{
+    font-family:'Fraunces',serif;
+    font-weight:560;
+    font-size:21px;
+    margin:0 0 10px;
+  }
+  .modal-desc{
+    color:var(--ink-soft);
+    font-size:13px;
+    margin:0 0 18px;
+    line-height:1.55;
+  }
+  .file-drop{
+    border:1.5px dashed var(--hairline-strong);
+    border-radius:10px;
+    padding:22px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color 0.15s ease, background 0.15s ease;
+  }
+  .file-drop:hover, .file-drop.drag{ border-color:var(--botanical); background:var(--botanical-tint); }
+  .file-drop input{ display:none; }
+  .file-drop-label{ font-size:13px; color:var(--ink-soft); }
+  .file-drop-label strong{ color:var(--ink); }
+  #uploadStatus{ font-size:12.5px; margin-top:12px; min-height:0; }
+  #uploadStatus.error{ color:#9B3B3B; }
+  #uploadStatus.ok{ color:var(--botanical); }
+  .upload-preview{
+    margin-top:14px;
+    border:1px solid var(--hairline);
+    border-radius:8px;
+    padding:12px 14px;
+    font-size:12.5px;
+  }
+  .upload-preview-row{
+    display:flex; justify-content:space-between;
+    padding:4px 0;
+    font-family:'JetBrains Mono',ui-monospace,monospace;
+  }
+  .token-section{ margin-top:16px; }
+  .token-label{
+    display:block;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  #tokenInput{
+    width:100%;
+    border:1px solid var(--hairline-strong);
+    background:var(--porcelain);
+    border-radius:8px;
+    padding:9px 12px;
+    font-family:'JetBrains Mono',ui-monospace,monospace;
+    font-size:12.5px;
+    color:var(--ink);
+  }
+  #tokenInput:focus{ outline:2px solid var(--botanical); outline-offset:1px; border-color:var(--botanical); }
+  .remember-row{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    margin-top:8px;
+    font-size:12px;
+    color:var(--ink-faint);
+    cursor:pointer;
+  }
+  .remember-row input{ margin:0; }
+  .modal-actions{
+    display:flex; justify-content:flex-end; gap:10px;
+    margin-top:22px;
+  }
+  .btn-secondary, .btn-primary{
+    font-family:inherit;
+    font-size:13px;
+    font-weight:600;
+    padding:9px 18px;
+    border-radius:100px;
+    cursor:pointer;
+    border:1px solid transparent;
+  }
+  .btn-secondary{ background:transparent; border-color:var(--hairline-strong); color:var(--ink-soft); }
+  .btn-secondary:hover{ border-color:var(--ink-faint); color:var(--ink); }
+  .btn-primary{ background:var(--ink); color:var(--porcelain); }
+  .btn-primary:hover{ background:var(--botanical); }
+  .btn-primary:disabled{ background:var(--hairline-strong); color:var(--ink-faint); cursor:not-allowed; }
+
+  /* ---------- Toast ---------- */
+  .toast{
+    position:fixed;
+    bottom:24px; left:50%;
+    transform:translate(-50%, 16px);
+    background:var(--ink);
+    color:var(--porcelain);
+    padding:11px 20px;
+    border-radius:100px;
+    font-size:13px;
+    box-shadow:var(--shadow-md);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.2s ease, transform 0.2s ease;
+    z-index:200;
+    white-space:nowrap;
+  }
+  .toast.show{ opacity:1; transform:translate(-50%, 0); }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 860px){
+    .kpis{ grid-template-columns:1fr 1fr; }
+    .dist-row{ grid-template-columns:90px 1fr 100px; gap:12px; }
+  }
+  @media (max-width: 560px){
+    .app{ padding:22px 16px 60px; }
+    .hero h1{ font-size:30px; }
+    .kpis{ grid-template-columns:1fr 1fr; }
+    .topbar{ flex-wrap:wrap; }
+    .table-toolbar{ flex-direction:column; align-items:stretch; }
+    #searchInput{ max-width:none; }
+    .dist-row{ grid-template-columns:80px 1fr; }
+    .dist-total{ grid-column:1 / -1; text-align:left; margin-top:2px; }
+    table{ min-width:480px; }
+    thead th, tbody td{ padding:9px 10px; font-size:12px; }
+    td:first-child, th:first-child{ max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">Estoque · Rede de marcas</div>
+    </div>
+    <div class="topbar-right">
+      <span class="updated" id="updatedLabel">—</span>
+      <button class="btn-upload" id="btnUpload" type="button">↑ Atualizar planilha</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <h1 id="pageTitle">Estoque geral</h1>
+    <p class="subtitle" id="pageSubtitle">Disponível nos CDs Pernambuco e São Paulo</p>
+  </section>
+
+  <nav class="filters" id="filters"></nav>
+
+  <section class="kpis" id="kpis"></section>
+
+  <section class="distribution" id="distributionSection">
+    <div class="section-title">Disponibilidade por marca</div>
+    <div id="distributionRows"></div>
+  </section>
+
+  <section class="table-section">
+    <div class="table-toolbar">
+      <input id="searchInput" type="text" placeholder="Buscar produto..." autocomplete="off" />
+      <div class="result-count" id="resultCount"></div>
+    </div>
+    <div class="table-wrap">
+      <table id="productTable">
+        <thead>
+          <tr>
+            <th data-key="p">Produto <span class="arrow"></span></th>
+            <th data-key="b">Marca <span class="arrow"></span></th>
+            <th data-key="pe" class="num">PE <span class="arrow"></span></th>
+            <th data-key="sp" class="num">SP <span class="arrow"></span></th>
+            <th data-key="total" class="num">Total <span class="arrow"></span></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>Fonte: coluna <strong>Disp.</strong> das planilhas de estoque, somando os CDs Pernambuco e São Paulo. Envie uma planilha geral atualizada para recalcular os números — a atualização é salva neste painel para todos que acessarem este mesmo link.</p>
+  </footer>
+
+</div>
+
+<div class="modal-overlay" id="uploadOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h3 id="modalTitle">Atualizar planilha</h3>
+    <p class="modal-desc">Envie a planilha geral (.xlsx) com todos os itens. Esse envio substitui os dados atuais do painel para todos que o acessarem — a atualização é gravada no repositório do GitHub (pode levar alguns minutos para todo mundo ver, por causa de cache).</p>
+    <label class="file-drop" id="fileDrop">
+      <input type="file" id="fileInput" accept=".xlsx,.xls" multiple />
+      <div class="file-drop-label"><strong>Clique para escolher</strong> ou arraste o arquivo aqui</div>
+    </label>
+    <div id="uploadStatus"></div>
+    <div id="uploadPreview" class="upload-preview" hidden></div>
+    <div id="tokenSection" class="token-section" hidden>
+      <label class="token-label" for="tokenInput">Token de acesso do GitHub (só quem atualiza precisa disso)</label>
+      <input type="password" id="tokenInput" placeholder="ghp_..." autocomplete="off" />
+      <label class="remember-row"><input type="checkbox" id="rememberToken" /> Lembrar neste navegador</label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="cancelUpload" type="button">Cancelar</button>
+      <button class="btn-primary" id="confirmUpload" type="button" disabled>Confirmar atualização</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
